@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <fstream>
 #include <limits>
 using namespace std;
 
@@ -13,9 +14,19 @@ public:
 
     string getName() const { return name; }
     int getAge() const { return age; }
+
+    string toFileString() const {
+        return name + "," + to_string(age);
+    }
+
+    static Student fromFileString(const string& line) {
+        size_t commaPos = line.find(",");
+        string name = line.substr(0, commaPos);
+        int age = stoi(line.substr(commaPos + 1));
+        return Student(name, age);
+    }
 };
 
-// Clears bad input so the menu doesn’t get stuck
 void clearInput() {
     cin.clear();
     cin.ignore(numeric_limits<streamsize>::max(), '\n');
@@ -33,7 +44,7 @@ int readInt(const string& prompt) {
             continue;
         }
 
-        clearInput(); // remove leftover newline
+        clearInput();
         return value;
     }
 }
@@ -45,21 +56,32 @@ string readLine(const string& prompt) {
     return text;
 }
 
-void addStudent(vector<Student>& students) {
-    string name = readLine("Enter student name: ");
+void saveStudents(const vector<Student>& students) {
+    ofstream file("students.txt");
+    for (const Student& s : students) {
+        file << s.toFileString() << endl;
+    }
+}
 
-    int age;
-    while (true) {
-        age = readInt("Enter student age: ");
-        if (age <= 0 || age > 120) {
-            cout << "Please enter a valid age (1-120).\n";
-        } else {
-            break;
+void loadStudents(vector<Student>& students) {
+    ifstream file("students.txt");
+    string line;
+
+    while (getline(file, line)) {
+        if (!line.empty()) {
+            students.push_back(Student::fromFileString(line));
         }
     }
+}
+
+void addStudent(vector<Student>& students) {
+    string name = readLine("Enter student name: ");
+    int age = readInt("Enter student age: ");
 
     students.push_back(Student(name, age));
-    cout << "Student added!\n";
+    saveStudents(students);
+
+    cout << "Student added and saved.\n";
 }
 
 void listStudents(const vector<Student>& students) {
@@ -70,7 +92,8 @@ void listStudents(const vector<Student>& students) {
 
     cout << "\n--- Student List ---\n";
     for (int i = 0; i < (int)students.size(); i++) {
-        cout << (i + 1) << ") " << students[i].getName()
+        cout << (i + 1) << ") "
+             << students[i].getName()
              << " (Age: " << students[i].getAge() << ")\n";
     }
 }
@@ -82,24 +105,4 @@ void showMenu() {
     cout << "3) Exit\n";
 }
 
-int main() {
-    vector<Student> students;
-
-    while (true) {
-        showMenu();
-        int choice = readInt("Choose an option: ");
-
-        if (choice == 1) {
-            addStudent(students);
-        } else if (choice == 2) {
-            listStudents(students);
-        } else if (choice == 3) {
-            cout << "Goodbye!\n";
-            break;
-        } else {
-            cout << "Invalid option. Try again.\n";
-        }
-    }
-
-    return 0;
-}
+int main()
