@@ -6,7 +6,8 @@ It was created to practice object oriented programming concepts and basic file h
 Features
 - Add students
 - Display student records
-- Store student data using files
+- Automatically save student data to a file
+- Load saved student data when the program starts
 
 Concepts Used
 - Classes and objects
